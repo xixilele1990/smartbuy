@@ -1,0 +1,51 @@
+############################
+# Java / Spring Boot
+############################
+*.class
+*.log
+hs_err_pid*
+replay_pid*
+*.pid
+*.hprof
+
+############################
+# Gradle
+############################
+.gradle/
+build/
+# keep Gradle wrapper
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+!gradlew
+!gradlew.bat
+
+############################
+# IntelliJ IDEA
+############################
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+############################
+# OS
+############################
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+
+############################
+# Env / local overrides
+############################
+.env
+.env.*
+application-local.properties
+application-dev.properties
+application-prod.properties
+
+############################
+# Optional: VS Code
+############################
+.vscode/

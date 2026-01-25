@@ -70,10 +70,8 @@ public class AttomClient {
 
     public SchoolsData schoolsData(long attomId) {
         JsonNode resp = detailWithSchools(attomId);
-        // ATTOM v4 response places school under property[0].school (not at the top-level).
         JsonNode school = resp.path("property").path(0).path("school");
         if (school.isMissingNode() || school.isNull()) {
-            // fallback (in case ATTOM changes response shape)
             school = resp.path("school");
         }
         String schoolsJson = (school.isMissingNode() || school.isNull()) ? "[]" : school.toString();
@@ -111,13 +109,11 @@ public class AttomClient {
             return null;
         }
         JsonNode resp = neighborhoodCommunity(crimeId);
-        // Expected shape (confirmed):
-        // { "community": { "crime": { "crime_Index": 52, ... } } }
+    
         JsonNode idx = resp.path("community").path("crime").path("crime_Index");
         if (!idx.isMissingNode() && !idx.isNull()) {
             return idx.asInt();
         }
-        // Fallback (defensive; keeps behavior stable if ATTOM changes the nesting)
         idx = resp.path("crime").path("crime_Index");
         if (!idx.isMissingNode() && !idx.isNull()) {
             return idx.asInt();
@@ -144,7 +140,7 @@ public class AttomClient {
         }
 
         String n2 = geoIdV4.path("N2").asText(null);
-        // Use null to represent missing values (do not use "0" sentinel).
+
         String crimeId = (n2 == null || n2.isBlank()) ? null : n2;
 
         JsonNode rooms = property0.path("building").path("rooms");
@@ -171,7 +167,6 @@ public class AttomClient {
             try {
                 bathsTotal = bathsTotalNode.decimalValue();
             } catch (Exception ignored) {
-                // leave null if not parseable
             }
         }
 

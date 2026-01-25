@@ -35,21 +35,15 @@ public class BuyerProfile {
 
     // --- Financial Constraints ---
     @Column(nullable = false)
-    @NotNull(message = "Price can not be empty")
-    @DecimalMin(value = "0.0", inclusive = true, message = "Price can not be negative")
     @Setter
     private Double maxPrice;
 
     // --- Space Requirements ---
     @Column(nullable = false)
-    @NotNull(message = "Bedrooms can not be null")
-    @Min(value = 0, message = "Number of bedrooms can not be negative")
     @Setter
     private Integer minBedrooms;
 
     @Column(nullable = false)
-    @NotNull(message = "bathrooms can not be null")
-    @Min(value = 0, message = "Number of bathrooms can not be negative")
     @Setter
     private Integer minBathrooms;
 

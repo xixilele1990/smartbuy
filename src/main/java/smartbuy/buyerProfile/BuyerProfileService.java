@@ -47,6 +47,6 @@ public class BuyerProfileService {
                 .orElseThrow(() -> new RuntimeException("Profile not found with ID: " + sessionId));
 
         // if find a sessionId, then delete the profile
-        repository.deleteBySessionId(sessionId);
+        repository.delete(profile);
     }
 }

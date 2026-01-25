@@ -1,4 +1,4 @@
-package smartbuy.buyerProfile;
+package smartbuy.buyerprofile;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;

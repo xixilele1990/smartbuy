@@ -1,4 +1,4 @@
-package smartbuy.buyerProfile;
+package smartbuy.buyerprofile;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -33,7 +33,7 @@ public class HouseController {
     /**
      * Creates a House by fetching ATTOM basicprofile and persisting attomId + geoIdV4.
      *
-     * If address1/address2 are omitted, it falls back to a known-good demo address.
+     * we can make sure frontend check address1 and address2 are not null
      */
     @PostMapping("/from-attom-hardcoded")
     public HouseResponse createFromAttomHardcoded(
@@ -46,10 +46,7 @@ public class HouseController {
         return fetchHouseFromAttom(a1, a2);
     }
 
-    /**
-     * Debug-only convenience endpoint to import 2 known-good addresses in one call.
-     * Reuses the normal /import pipeline (same concurrency + result shape).
-     */
+ // hardcode will be used for testing and removed later 
     @PostMapping("/import-hardcoded-2")
     public ImportHousesResponse importHardcoded2() {
         ImportHousesRequest req = new ImportHousesRequest();
@@ -70,9 +67,8 @@ public class HouseController {
     }
 
     /**
-     * 
-     *
-     * Request example:
+
+     * Request example: hard code wil be removed before merging
      * {
      *   "addresses": [
      *     {"address1":"2464 Forbes Ave","address2":"Santa Clara, CA 95050"},

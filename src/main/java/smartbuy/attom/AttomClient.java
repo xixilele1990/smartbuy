@@ -27,8 +27,6 @@ public class AttomClient {
 
     /**
      * Calls ATTOM AVM detail by address.
-     *
-     * Example:
      * /propertyapi/v1.0.0/attomavm/detail?address1=4529%20Winona%20Court&address2=Denver%2C%20CO
      */
     public JsonNode avmDetail(String address1, String address2) {
@@ -49,8 +47,6 @@ public class AttomClient {
 
     /**
      * Calls ATTOM schools endpoint by attomId (v4).
-     *
-     * Example:
      * /propertyapi/v4/property/detailwithschools?attomid=184713191
      */
     public JsonNode detailWithSchools(long attomId) {
@@ -79,11 +75,7 @@ public class AttomClient {
     }
 
     /**
-     * Calls ATTOM neighborhood community (crime) endpoint.
-     *
-     * Example:
      * /v4/neighborhood/community?geoIdv4=<N2>
-     *
      * Note: In your usage, geoIdv4 is actually geoIdV4.N2.
      */
     public JsonNode neighborhoodCommunity(String geoIdv4) {
@@ -122,7 +114,7 @@ public class AttomClient {
     }
 
     /**
-     * Extract data we want to persist from ATTOM AVM detail response:
+     * we need the following data from Attom api 
      * - attomId
      * - geoIdV4 (full JSON)
      * - crimeId (geoIdV4.N2; null if missing)

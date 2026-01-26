@@ -18,9 +18,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/**
- * 给前端的 scoring API（不落库）。
- */
+
 @RestController
 @RequestMapping("/api/score")
 public class ScoreController {
@@ -38,17 +36,19 @@ public class ScoreController {
         this.scoringService = scoringService;
     }
 
-    /**
-     * 直接对一个 House DTO 打分（House 通常来自 /api/houses/from-attom-hardcoded 或前端缓存）。
-     * buyerProfile 当前可省略（会用 hardcoded default）。
-     */
+  
     @PostMapping("/house")
     public ScoreResponse scoreHouse(@RequestBody ScoreHouseRequest req) {
         if (req == null || req.house == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "house is required");
         }
-        BuyerProfile profile = (req.buyerProfile != null) ? req.buyerProfile : buyerProfileService.getDefaultProfile();
-        return scoringService.score(profile, req.house);
+        if (req.buyerProfile == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile is required");
+        }
+        if (req.buyerProfile.priorityMode() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile.priorityMode is required");
+        }
+        return scoringService.score(req.buyerProfile, req.house);
     }
 
     /**
@@ -62,6 +62,12 @@ public class ScoreController {
     public ScoreBatchResponse batchScoreFromAttom(@RequestBody BatchScoreRequest req) {
         if (req == null || req.addresses == null || req.addresses.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "addresses is required");
+        }
+        if (req.buyerProfile == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile is required");
+        }
+        if (req.buyerProfile.priorityMode() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile.priorityMode is required");
         }
         if (req.addresses.size() > MAX_BATCH_SIZE) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "addresses max size is " + MAX_BATCH_SIZE);
@@ -77,7 +83,7 @@ public class ScoreController {
 
             List<House> houses = futures.stream().map(CompletableFuture::join).toList();
 
-            BuyerProfile profile = buyerProfileService.getDefaultProfile();
+            BuyerProfile profile = req.buyerProfile;
 
             List<ScoreResponse> results = houses.stream()
                     .map(h -> scoringService.score(profile, h))
@@ -89,10 +95,7 @@ public class ScoreController {
         }
     }
 
-    /**
-     * 一条请求：按地址拉 ATTOM -> 组装 House -> 用 hardcoded buyerProfile 打分 -> 返回前端。
-     * 这就是你要的“不落库，直接返回 scoring 结果”入口。
-     */
+ 
     @PostMapping("/from-attom-hardcoded")
     public ScoreResponse scoreFromAttomHardcoded(
             @RequestParam(required = false) String address1,
@@ -108,18 +111,16 @@ public class ScoreController {
 
     private House fetchHouseFromAttom(String address1, String address2) {
         try {
-            List<String> warnings = new ArrayList<>();
             AttomClient.AvmDetailData data = attomClient.avmDetailData(address1, address2);
             AttomClient.SchoolsData schools = attomClient.schoolsData(data.attomId());
 
             Integer crimeIndex = null;
             if (data.crimeId() == null || data.crimeId().isBlank()) {
-                warnings.add("Missing crimeId (geoIdV4.N2); crimeIndex unavailable");
             } else {
                 crimeIndex = attomClient.crimeIndex(data.crimeId());
             }
 
-            // 注：这里不落库，所以直接 new House；warnings 留给 scoring 的 warnings（后续可以合并返回）
+            // no database, using new house object 
             return new House(
                     address1,
                     address2,
@@ -151,6 +152,7 @@ public class ScoreController {
     }
 
     public static class BatchScoreRequest {
+        public BuyerProfile buyerProfile;
         public List<AddressInput> addresses;
     }
 

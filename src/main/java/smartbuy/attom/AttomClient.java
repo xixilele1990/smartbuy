@@ -67,16 +67,17 @@ public class AttomClient {
     public SchoolsData schoolsData(long attomId) {
         JsonNode resp = detailWithSchools(attomId);
         JsonNode school = resp.path("property").path(0).path("school");
-        if (school.isMissingNode() || school.isNull()) {
-            school = resp.path("school");
-        }
+        // if (school.isMissingNode() || school.isNull()) {
+        //     school = resp.path("school");
+        // }
+        // we can double check if the current api datastructure response keep the same 
         String schoolsJson = (school.isMissingNode() || school.isNull()) ? "[]" : school.toString();
         return new SchoolsData(schoolsJson);
     }
 
     /**
      * /v4/neighborhood/community?geoIdv4=<N2>
-     * Note: In your usage, geoIdv4 is actually geoIdV4.N2.
+     * Note: In your usage, geoIdv4 is actually geoIdV4.N2. renamed as crimeId
      */
     public JsonNode neighborhoodCommunity(String geoIdv4) {
         try {
@@ -106,10 +107,10 @@ public class AttomClient {
         if (!idx.isMissingNode() && !idx.isNull()) {
             return idx.asInt();
         }
-        idx = resp.path("crime").path("crime_Index");
-        if (!idx.isMissingNode() && !idx.isNull()) {
-            return idx.asInt();
-        }
+        // idx = resp.path("crime").path("crime_Index");
+        // if (!idx.isMissingNode() && !idx.isNull()) {
+        //     return idx.asInt();
+        // }    // we might not need this fallback check, assume only use this same api call . 
         return null;
     }
 
@@ -162,10 +163,7 @@ public class AttomClient {
             }
         }
 
-        JsonNode avm = resp.path("avm");
-        if (avm.isMissingNode() || avm.isNull()) {
-            avm = property0.path("avm");
-        }
+        JsonNode avm = property0.path("avm");
         JsonNode avmValueNode = avm.path("amount").path("value");
         Long avmValue = (!avmValueNode.isMissingNode() && !avmValueNode.isNull()) ? avmValueNode.asLong() : null;
 

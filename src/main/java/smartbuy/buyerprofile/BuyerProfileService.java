@@ -42,10 +42,9 @@ public class BuyerProfileService {
     //  Delete
     @Transactional
     public void deleteProfile(String sessionId) {
-    //  if not find a sessionId, then can not delete it. throw error
         BuyerProfile profile = repository.findBySessionId(sessionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cannot delete, profile not found with ID: " + sessionId));
-        // if find a sessionId, then delete the profile
+
         repository.delete(profile);
     }
 }

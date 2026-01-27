@@ -1,4 +1,4 @@
-package smartbuy;
+package smartbuy.buyerprofile;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

@@ -3,12 +3,13 @@ package smartbuy.buyerprofile;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
 public class BuyerProfileDTO {
 
-    @NotNull(message = "Session ID cannot be missing")
+    @NotBlank(message = "Session ID cannot be missing")
     private String sessionId;
 
     @NotNull(message = "Max Price is required")

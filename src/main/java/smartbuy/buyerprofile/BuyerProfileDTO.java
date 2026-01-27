@@ -4,6 +4,9 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import smartbuy.PriorityMode;
+
+import java.math.BigDecimal;
 
 @Data
 public class BuyerProfileDTO {
@@ -13,7 +16,7 @@ public class BuyerProfileDTO {
 
     @NotNull(message = "Max Price is required")
     @DecimalMin(value = "0.0", inclusive = true, message = "Price can not be negative")
-    private Double maxPrice;
+    private BigDecimal maxPrice;
 
     @NotNull(message = "Bedrooms count is required")
     @Min(value = 0)
@@ -21,8 +24,8 @@ public class BuyerProfileDTO {
 
     @NotNull(message = "Bathrooms count is required")
     @Min(value = 0)
-    private Integer minBathrooms;
+    private BigDecimal minBathrooms;
 
     @NotNull(message = "Priority Mode must be selected")
-    private BuyerProfile.PriorityMode priorityMode;
+    private PriorityMode priorityMode;
 }

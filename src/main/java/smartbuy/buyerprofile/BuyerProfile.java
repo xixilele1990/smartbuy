@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 
 import lombok.Getter;
 import lombok.Setter;
+import smartbuy.PriorityMode;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -34,7 +36,7 @@ public class BuyerProfile {
     // --- Financial Constraints ---
     @Column(nullable = false)
     @Setter
-    private Double maxPrice;
+    private BigDecimal maxPrice;
 
     // --- Space Requirements ---
     @Column(nullable = false)
@@ -43,7 +45,7 @@ public class BuyerProfile {
 
     @Column(nullable = false)
     @Setter
-    private Integer minBathrooms;
+    private BigDecimal minBathrooms;
 
     /**
      * The scoring strategy selected by the user.
@@ -54,13 +56,6 @@ public class BuyerProfile {
     @Enumerated(EnumType.STRING)
     @Setter
     private PriorityMode priorityMode;
-
-    public enum PriorityMode {
-        BALANCED,
-        BUDGET_DRIVEN,
-        SAFETY_FIRST,
-        EDUCATION_FIRST
-    }
 
     // Audit field: Tracks when the profile was last modified
     private LocalDateTime updatedAt;
@@ -76,11 +71,6 @@ public class BuyerProfile {
     }
 
     public double[] getWeights() {
-        return switch (priorityMode) {
-            case BALANCED -> new double[]{0.25, 0.25, 0.25, 0.25};
-            case BUDGET_DRIVEN -> new double[]{0.50, 0.20, 0.20, 0.10};
-            case SAFETY_FIRST -> new double[]{0.25, 0.15, 0.50, 0.10};
-            case EDUCATION_FIRST -> new double[]{0.20, 0.15, 0.15, 0.50};
-        };
+        return priorityMode != null ? priorityMode.getWeights() : null;
     }
 }

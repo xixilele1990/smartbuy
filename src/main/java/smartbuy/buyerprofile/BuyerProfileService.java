@@ -1,8 +1,10 @@
 package smartbuy.buyerprofile;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class BuyerProfileService {
@@ -34,7 +36,7 @@ public class BuyerProfileService {
     @Transactional(readOnly = true)
     public BuyerProfile getProfile(String sessionId) {
         return repository.findBySessionId(sessionId)
-                .orElseThrow(() -> new RuntimeException("Profile not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile not found for session: " + sessionId));
     }
 
     //  Delete
@@ -42,8 +44,7 @@ public class BuyerProfileService {
     public void deleteProfile(String sessionId) {
     //  if not find a sessionId, then can not delete it. throw error
         BuyerProfile profile = repository.findBySessionId(sessionId)
-                .orElseThrow(() -> new RuntimeException("Profile not found with ID: " + sessionId));
-
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cannot delete, profile not found with ID: " + sessionId));
         // if find a sessionId, then delete the profile
         repository.delete(profile);
     }

@@ -23,14 +23,14 @@ public class ScoringService {
         if (profile == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile is required");
         }
-        if (profile.priorityMode() == null) {
+        if (profile.getPriorityMode() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile.priorityMode is required");
         }
         if (house == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "house is required");
         }
 
-        PriorityMode mode = profile.priorityMode();
+        PriorityMode mode = profile.getPriorityMode();
 
         int price = priceFitScore(house, profile);
         int space = spaceScore(profile, house);
@@ -55,18 +55,19 @@ public class ScoringService {
         if (house.getAvmValue() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "house.avmValue is required");
         }
-        if (profile.maxPrice() == null) {
+        if (profile.getMaxPrice() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile.maxPrice is required");
         }
 
-        long avmI = house.getAvmValue();
-        long baseline = profile.maxPrice();
-        if (baseline <= 0) {
+        BigDecimal avmI = BigDecimal.valueOf(house.getAvmValue());
+        BigDecimal baseline = profile.getMaxPrice();
+        if (baseline.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile.maxPrice must be > 0");
         }
 
-        BigDecimal diff = BigDecimal.valueOf(Math.abs(avmI - baseline));
-        BigDecimal delta = diff.divide(BigDecimal.valueOf(baseline), 6, java.math.RoundingMode.HALF_UP);
+        BigDecimal diff = avmI.subtract(baseline).abs();
+        BigDecimal delta = diff.divide(baseline, 6, java.math.RoundingMode.HALF_UP);
+
         // thresholds we can change or discuss if needed
         if (delta.compareTo(new BigDecimal("0.05")) < 0) return 100;
         if (delta.compareTo(new BigDecimal("0.10")) < 0) return 90;
@@ -79,10 +80,10 @@ public class ScoringService {
         // bedroom penalty: -50 each missing bedroom
         // bathroom penalty: -15 each missing bathroom
 
-        if (profile.minBeds() == null) {
+        if (profile.getMinBedrooms() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile.minBeds is required");
         }
-        if (profile.minBathsTotal() == null) {
+        if (profile.getMinBathrooms() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile.minBathsTotal is required");
         }
 
@@ -92,7 +93,7 @@ public class ScoringService {
         if (house.getBeds() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "house.beds is required");
         }
-        int missingBedrooms = Math.max(0, profile.minBeds() - house.getBeds());
+        int missingBedrooms = Math.max(0, profile.getMinBedrooms() - house.getBeds());
         bedroomPenalty = 50 * missingBedrooms;
         
 
@@ -100,7 +101,7 @@ public class ScoringService {
         if (house.getBathsTotal() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "house.bathsTotal is required");
         }
-        BigDecimal diffBath = profile.minBathsTotal().subtract(house.getBathsTotal());
+        BigDecimal diffBath = profile.getMinBathrooms().subtract(house.getBathsTotal());
         if (diffBath.signum() > 0) {
             bathroomPenalty = diffBath.multiply(new BigDecimal("15"));
         }

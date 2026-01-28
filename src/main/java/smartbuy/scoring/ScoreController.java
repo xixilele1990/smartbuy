@@ -1,5 +1,6 @@
 package smartbuy.scoring;
 
+import lombok.Data;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,7 +46,7 @@ public class ScoreController {
         if (req.buyerProfile == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile is required");
         }
-        if (req.buyerProfile.priorityMode() == null) {
+        if (req.buyerProfile.getPriorityMode() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile.priorityMode is required");
         }
         return scoringService.score(req.buyerProfile, req.house);
@@ -66,7 +67,7 @@ public class ScoreController {
         if (req.buyerProfile == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile is required");
         }
-        if (req.buyerProfile.priorityMode() == null) {
+        if (req.buyerProfile.getPriorityMode() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile.priorityMode is required");
         }
         if (req.addresses.size() > MAX_BATCH_SIZE) {
@@ -105,7 +106,7 @@ public class ScoreController {
         String a2 = (address2 == null || address2.isBlank()) ? "Santa Clara, CA 95050" : address2;
 
         House house = fetchHouseFromAttom(a1, a2);
-        BuyerProfile profile = buyerProfileService.getDefaultProfile();
+        BuyerProfile profile = buyerProfileService.getProfile("sessionId");
         return scoringService.score(profile, house);
     }
 

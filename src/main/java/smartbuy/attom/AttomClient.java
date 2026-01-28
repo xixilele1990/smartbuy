@@ -19,7 +19,10 @@ public class AttomClient {
             @NonNull @Value("${attom.base-url}") String baseUrl,
             @Value("${attom.api-key}") String apiKey
     ) {
-        RestClient.Builder builder = RestClient.builder().baseUrl(baseUrl);
+        String cleanUrl = baseUrl.split(",")[0].trim();
+        String cleanKey = apiKey.trim();
+
+        RestClient.Builder builder = RestClient.builder().baseUrl(cleanUrl);
         
         builder.defaultHeader("apikey", apiKey);
         this.attomRestClient = builder.build();

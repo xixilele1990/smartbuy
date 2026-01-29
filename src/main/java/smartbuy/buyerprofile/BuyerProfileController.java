@@ -32,7 +32,7 @@ public class BuyerProfileController {
     public ResponseEntity<Void> deleteProfile(@PathVariable String sessionId) {
         service.deleteProfile(sessionId);
 
-        // return 204 No Content
+ 
         return ResponseEntity.noContent().build();
     }
 }

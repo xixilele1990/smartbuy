@@ -81,10 +81,10 @@ public class ScoringService {
         // bathroom penalty: -15 each missing bathroom
 
         if (profile.getMinBedrooms() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile.minBeds is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile.minBedrooms is required");
         }
         if (profile.getMinBathrooms() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile.minBathsTotal is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile.minBathrooms is required");
         }
 
         int bedroomPenalty = 0;
@@ -187,15 +187,11 @@ public class ScoringService {
             int safety,
             int schools
     ) {
-        double wAff, wSpace, wSafety, wSchools;
-        switch (mode) {
-            // Final version weights we can change if needed:
-            case BALANCED -> { wAff = 0.40; wSpace = 0.25; wSafety = 0.20; wSchools = 0.15; }
-            case BUDGET_DRIVEN -> { wAff = 0.50; wSpace = 0.20; wSafety = 0.20; wSchools = 0.10; }
-            case SAFETY_FIRST -> { wAff = 0.25; wSpace = 0.15; wSafety = 0.50; wSchools = 0.10; }
-            case EDUCATION_FIRST -> { wAff = 0.20; wSpace = 0.15; wSafety = 0.15; wSchools = 0.50; }
-            default -> { wAff = 0.40; wSpace = 0.25; wSafety = 0.20; wSchools = 0.15; }
-        }
+
+        double wAff = mode.getPriceWeight();
+        double wSpace = mode.getSpaceWeight();
+        double wSafety = mode.getSafetyWeight();
+        double wSchools = mode.getSchoolWeight();
 
         double sum = price * wAff + space * wSpace + safety * wSafety + schools * wSchools;
         int total = (int) Math.round(sum);

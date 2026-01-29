@@ -8,6 +8,6 @@ import java.util.Optional;
 public interface BuyerProfileRepository extends JpaRepository<BuyerProfile, Long> {
     Optional<BuyerProfile> findBySessionId(String sessionId);
 
-    // delete according the session id
+
     void deleteBySessionId(String sessionId);
 }

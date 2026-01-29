@@ -14,6 +14,7 @@ import smartbuy.buyerprofile.BuyerProfileService;
 import smartbuy.house.House;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -52,13 +53,7 @@ public class ScoreController {
         return scoringService.score(req.buyerProfile, req.house);
     }
 
-    /**
-     * 批量评分（前端不需要传 avmAvg）：
-     * - 输入：地址列表（最多 5）
-     * - 后端：并发调用 ATTOM 拿到每套房的 avmValue
-     * - 后端：计算 avmAvg（仅统计 avmValue != null 的房源）
-     * - 输出：每套房的 totalScore（以及 house 本身）
-     */
+    // batch score together 
     @PostMapping("/batch-from-attom")
     public ScoreBatchResponse batchScoreFromAttom(@RequestBody BatchScoreRequest req) {
         if (req == null || req.addresses == null || req.addresses.isEmpty()) {
@@ -86,8 +81,10 @@ public class ScoreController {
 
             BuyerProfile profile = req.buyerProfile;
 
+            // sort the result by total in descending order
             List<ScoreResponse> results = houses.stream()
                     .map(h -> scoringService.score(profile, h))
+                    .sorted(Comparator.comparing(ScoreResponse::totalScore, Comparator.nullsLast(Comparator.reverseOrder())))
                     .toList();
 
             return new ScoreBatchResponse(results);
@@ -130,7 +127,6 @@ public class ScoreController {
                     data.crimeId(),
                     data.beds(),
                     data.bathsTotal(),
-                    data.roomsTotal(),
                     data.avmValue(),
                     schools.schoolsJson(),
                     crimeIndex

@@ -122,7 +122,7 @@ public class AttomClient {
      * - attomId
      * - geoIdV4 (full JSON)
      * - crimeId (geoIdV4.N2; null if missing)
-     * - beds, bathstotal, roomsTotal
+     * - beds, bathstotal
      * - avm amount.value
      */
     public AvmDetailData avmDetailData(String address1, String address2) {
@@ -145,17 +145,11 @@ public class AttomClient {
         }
 
         Integer beds = null;
-        Integer roomsTotal = null;
         BigDecimal bathsTotal = null;
 
         JsonNode bedsNode = rooms.path("beds");
         if (!bedsNode.isMissingNode() && !bedsNode.isNull()) {
             beds = bedsNode.asInt();
-        }
-
-        JsonNode roomsTotalNode = rooms.path("roomsTotal");
-        if (!roomsTotalNode.isMissingNode() && !roomsTotalNode.isNull()) {
-            roomsTotal = roomsTotalNode.asInt();
         }
 
         JsonNode bathsTotalNode = rooms.path("bathstotal");
@@ -170,7 +164,7 @@ public class AttomClient {
         JsonNode avmValueNode = avm.path("amount").path("value");
         Long avmValue = (!avmValueNode.isMissingNode() && !avmValueNode.isNull()) ? avmValueNode.asLong() : null;
 
-        return new AvmDetailData(attomId, geoIdV4.toString(), crimeId, beds, bathsTotal, roomsTotal, avmValue);
+        return new AvmDetailData(attomId, geoIdV4.toString(), crimeId, beds, bathsTotal, avmValue);
     }
 
     public record SchoolsData(String schoolsJson) {}
@@ -181,7 +175,6 @@ public class AttomClient {
             String crimeId,
             Integer beds,
             BigDecimal bathsTotal,
-            Integer roomsTotal,
             Long avmValue
     ) {}
 }

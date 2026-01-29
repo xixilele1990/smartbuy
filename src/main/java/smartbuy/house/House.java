@@ -22,8 +22,6 @@ public class House {
 
     private BigDecimal bathsTotal;
 
-    private Integer roomsTotal;
-
     private Long avmValue;
 
     private String schoolsJson;
@@ -41,7 +39,6 @@ public class House {
             String crimeId,
             Integer beds,
             BigDecimal bathsTotal,
-            Integer roomsTotal,
             Long avmValue,
             String schoolsJson,
             Integer crimeIndex
@@ -53,7 +50,6 @@ public class House {
         this.crimeId = crimeId;
         this.beds = beds;
         this.bathsTotal = bathsTotal;
-        this.roomsTotal = roomsTotal;
         this.avmValue = avmValue;
         this.schoolsJson = schoolsJson;
         this.crimeIndex = crimeIndex;
@@ -85,10 +81,6 @@ public class House {
 
     public BigDecimal getBathsTotal() {
         return bathsTotal;
-    }
-
-    public Integer getRoomsTotal() {
-        return roomsTotal;
     }
 
     public Long getAvmValue() {
@@ -129,10 +121,6 @@ public class House {
 
     public void setBathsTotal(BigDecimal bathsTotal) {
         this.bathsTotal = bathsTotal;
-    }
-
-    public void setRoomsTotal(Integer roomsTotal) {
-        this.roomsTotal = roomsTotal;
     }
 
     public void setAvmValue(Long avmValue) {

@@ -20,10 +20,6 @@ public enum PriorityMode {
     private final double safetyWeight;
     private final double schoolWeight;
 
-    /**
-     * Returns the weights as an array for the scoring engine.
-     * Order: [Price, Space, Safety, Schools]
-     */
     public double[] getWeights() {
         return new double[]{priceWeight, spaceWeight, safetyWeight, schoolWeight};
     }

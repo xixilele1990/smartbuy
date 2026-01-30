@@ -40,6 +40,13 @@ public class ScoringService {
         int safety = safetyScore(house);
         int schools = schoolsScore(house);
 
+        List<DimensionScore> dimensions = List.of(
+                new DimensionScore("Price", price),
+                new DimensionScore("Space", space),
+                new DimensionScore("Safety", safety),
+                new DimensionScore("Schools", schools)
+        );
+
         int total = weightedTotal(mode, price, space, safety, schools);
 
         // Top-Level Rule: Total Score Cap Penalty： If Space Fit or Crime Safety is 0, cap total at 40.
@@ -47,9 +54,9 @@ public class ScoringService {
             total = Math.min(total, 40);
         }
 
-        String summary = generateSummary(total, price, space, safety, schools, mode);
+        String summary = generateSummary(total, dimensions, mode);
 
-        return new ScoreResponse(house, total, summary);
+        return new ScoreResponse(house, total, dimensions, summary);
     }
 
     /**
@@ -191,43 +198,28 @@ public class ScoringService {
         };
     }
 
-    private String generateSummary(int total, int price, int space, int safety, int schools, PriorityMode mode) {
-        // 1. define dimensions
-        List<Dimension> dims = new ArrayList<>();
-        dims.add(new Dimension("Price", price));
-        dims.add(new Dimension("Space", space));
-        dims.add(new Dimension("Safety", safety));
-        dims.add(new Dimension("Schools", schools));
+    private String generateSummary(int total, List<DimensionScore> dims, PriorityMode mode) {
 
-        // 2. sort
-        dims.sort(Comparator.comparingInt(d -> d.score));
+        List<DimensionScore> sorted = new ArrayList<>(dims);
+        sorted.sort(Comparator.comparingInt(DimensionScore::getScore));
 
-        // 3. get the strongest and weakest
-        Dimension weakest = dims.get(0);
-        Dimension secondStrongest = dims.get(2);
-        Dimension strongest = dims.get(3);
+        DimensionScore weakest = sorted.get(0);
+        DimensionScore secondStrongest = sorted.get(2);
+        DimensionScore strongest = sorted.get(3);
 
-        // 4. assume total > 60 means match )
         String matchStatus = (total >= 60) ? "a match" : "not a match";
 
-        // 5. format string
         return String.format(
-                "This house received a SmartScore of %d. Its strengths are its %s with %d and %s with %d. " +
-                        "However, its %s score is low at %d, which you should pay attention to. " +
-                        "Since your priority is '%s', this house is %s for you.",
+                "This house received a SmartScore of %d. Its strongest areas are %s (%d) and %s (%d). " +
+                        "However, the %s score is lower at %d, which may be a concern. " +
+                        "Given your priority '%s', this property is %s for you.",
                 total,
-                strongest.name, strongest.score,
-                secondStrongest.name, secondStrongest.score,
-                weakest.name, weakest.score,
+                strongest.getName(), strongest.getScore(),
+                secondStrongest.getName(), secondStrongest.getScore(),
+                weakest.getName(), weakest.getScore(),
                 mode,
                 matchStatus
         );
-    }
-
-    private static class Dimension {
-        String name;
-        int score;
-        Dimension(String name, int score) { this.name = name; this.score = score; }
     }
 
     private int weightedTotal(

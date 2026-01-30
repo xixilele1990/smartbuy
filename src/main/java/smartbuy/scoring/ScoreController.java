@@ -2,11 +2,7 @@ package smartbuy.scoring;
 
 import lombok.Data;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import smartbuy.attom.AttomClient;
 import smartbuy.buyerprofile.BuyerProfile;
@@ -22,6 +18,7 @@ import java.util.concurrent.Executors;
 
 
 @RestController
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 @RequestMapping("/api/score")
 public class ScoreController {
 

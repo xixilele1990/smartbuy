@@ -10,6 +10,9 @@ import smartbuy.buyerprofile.PriorityMode;
 import smartbuy.house.House;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 
 
@@ -38,7 +41,15 @@ public class ScoringService {
         int schools = schoolsScore(house);
 
         int total = weightedTotal(mode, price, space, safety, schools);
-        return new ScoreResponse(house, total, null);
+
+        // Top-Level Rule: Total Score Cap Penalty： If Space Fit or Crime Safety is 0, cap total at 40.
+        if (space == 0 || safety == 0) {
+            total = Math.min(total, 40);
+        }
+
+        String summary = generateSummary(total, price, space, safety, schools, mode);
+
+        return new ScoreResponse(house, total, summary);
     }
 
     /**
@@ -116,21 +127,21 @@ public class ScoringService {
 
 
         // Crime Safety Score (S_crime) - inverse tier mapping ？ need to confirm with Li Yan,
-        // Very Safe:     C < 35   -> 100
-        // Low Risk:      35-50    -> 90
-        // Moderate Risk: 50-65    -> 75
-        // High Risk:     65-80    -> 60
-        // Very Unsafe:   C >= 80  -> 0
+        // Very Safe:     C < 100   -> 100
+        // Low Risk:      100-125    -> 90
+        // Moderate Risk: 125-150   -> 75
+        // High Risk:     150-200    -> 60
+        // Very Unsafe:   C > 200    -> 0
     private int safetyScore(House house) {
         if (house.getCrimeIndex() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "house.crimeIndex is required");
         }
         int c = house.getCrimeIndex();
 
-        if (c < 35) return 100;
-        if (c < 50) return 90;
-        if (c < 65) return 75;
-        if (c < 80) return 60;
+        if (c < 100) return 100;
+        if (c < 125) return 90;
+        if (c < 150) return 75;
+        if (c < 200) return 60;
         return 0;
     }
 
@@ -178,6 +189,45 @@ public class ScoringService {
             case 'D', 'F' -> 50;
             default -> 50;
         };
+    }
+
+    private String generateSummary(int total, int price, int space, int safety, int schools, PriorityMode mode) {
+        // 1. define dimensions
+        List<Dimension> dims = new ArrayList<>();
+        dims.add(new Dimension("Price", price));
+        dims.add(new Dimension("Space", space));
+        dims.add(new Dimension("Safety", safety));
+        dims.add(new Dimension("Schools", schools));
+
+        // 2. sort
+        dims.sort(Comparator.comparingInt(d -> d.score));
+
+        // 3. get the strongest and weakest
+        Dimension weakest = dims.get(0);
+        Dimension secondStrongest = dims.get(2);
+        Dimension strongest = dims.get(3);
+
+        // 4. assume total > 60 means match )
+        String matchStatus = (total >= 60) ? "a match" : "not a match";
+
+        // 5. format string
+        return String.format(
+                "This house received a SmartScore of %d. Its strengths are its %s with %d and %s with %d. " +
+                        "However, its %s score is low at %d, which you should pay attention to. " +
+                        "Since your priority is '%s', this house is %s for you.",
+                total,
+                strongest.name, strongest.score,
+                secondStrongest.name, secondStrongest.score,
+                weakest.name, weakest.score,
+                mode,
+                matchStatus
+        );
+    }
+
+    private static class Dimension {
+        String name;
+        int score;
+        Dimension(String name, int score) { this.name = name; this.score = score; }
     }
 
     private int weightedTotal(

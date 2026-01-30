@@ -137,23 +137,26 @@ public class ScoringService {
     }
 
 
-        // Crime Safety Score (S_crime) - inverse tier mapping ？ need to confirm with Li Yan,
-        // Very Safe:     C < 100   -> 100
-        // Low Risk:      100-125    -> 90
-        // Moderate Risk: 125-150   -> 75
-        // High Risk:     150-200    -> 60
-        // Very Unsafe:   C > 200    -> 0
+        // Crime Safety Score (S_crime)
+        // Crime index definition: national average = 100.
+        // - 200 means 2x national average risk (deal-breaker -> 0)
+        //
+        // More aggressive mapping (user spec):
+        // - if C <= 80  -> 100
+        // - if 80 < C < 200 -> linear down to 0
+        //      S = clamp( (200 - C) / (200 - 80) * 100, 0, 100 )
+        // - if C >= 200 -> 0
     private int safetyScore(House house) {
         if (house.getCrimeIndex() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "house.crimeIndex is required");
         }
         int c = house.getCrimeIndex();
 
-        if (c < 100) return 100;
-        if (c < 125) return 90;
-        if (c < 150) return 75;
-        if (c < 200) return 60;
-        return 0;
+        if (c >= 200) return 0;
+        if (c <= 80) return 100;
+
+        double score = (200.0 - c) * 100.0 / 120.0; 
+        return clamp((int) Math.round(score), 0, 100);
     }
 
     private int schoolsScore(House house) {

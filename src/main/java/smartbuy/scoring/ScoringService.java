@@ -60,14 +60,15 @@ public class ScoringService {
     }
 
     /**
-     * Δ = |AVM_i - max| / max
+     * ratio = (avm - maxPrice) / maxPrice
      *
      * Tiered:
-     * Δ < 5%    -> 100
-     * 5%-10%    -> 90
-     * 10%-15%   -> 80
-     * 15%-20%   -> 70
-     * >= 20%    -> 60
+     * <= 80%    -> 100
+     * 80%-90%   -> 95
+     * 100%-110%   -> 80
+     * 110%-120%   -> 70
+     * 120%-130%   -> 50
+     * > 130%    -> 30
      */
     private int priceFitScore(House house, BuyerProfile profile) {
         if (house.getAvmValue() == null) {

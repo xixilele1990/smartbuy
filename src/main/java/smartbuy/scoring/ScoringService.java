@@ -78,20 +78,23 @@ public class ScoringService {
         }
 
         BigDecimal avmI = BigDecimal.valueOf(house.getAvmValue());
-        BigDecimal baseline = profile.getMaxPrice();
-        if (baseline.compareTo(BigDecimal.ZERO) <= 0) {
+        BigDecimal maxPrice = profile.getMaxPrice();
+        if (maxPrice.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile.maxPrice must be > 0");
         }
 
-        BigDecimal diff = avmI.subtract(baseline).abs();
-        BigDecimal delta = diff.divide(baseline, 6, java.math.RoundingMode.HALF_UP);
+        BigDecimal ratio = avmI.divide(maxPrice, 4, java.math.RoundingMode.HALF_UP);
+        // --- UNDER OR AT BUDGET ---
+        if (ratio.compareTo(new BigDecimal("0.80")) <= 0) return 100; // Well Under Budget
+        if (ratio.compareTo(new BigDecimal("0.90")) <= 0) return 95;  // Under Budget
+        if (ratio.compareTo(new BigDecimal("1.00")) <= 0) return 90;  // At Budget
 
-        // thresholds we can change or discuss if needed
-        if (delta.compareTo(new BigDecimal("0.05")) < 0) return 100;
-        if (delta.compareTo(new BigDecimal("0.10")) < 0) return 90;
-        if (delta.compareTo(new BigDecimal("0.15")) < 0) return 80;
-        if (delta.compareTo(new BigDecimal("0.20")) < 0) return 70;
-        return 60;
+        // --- OVER BUDGET (Calculated by how much it exceeds 1.00) ---
+        if (ratio.compareTo(new BigDecimal("1.05")) <= 0) return 80;  // Slightly Over (5%)
+        if (ratio.compareTo(new BigDecimal("1.10")) <= 0) return 70;  // Over Budget (10%)
+        if (ratio.compareTo(new BigDecimal("1.20")) <= 0) return 50;  // Significantly Over (20%)
+
+        return 30; // Out of Range (> 20%)
     }
 
     private int spaceScore(BuyerProfile profile, House house) {

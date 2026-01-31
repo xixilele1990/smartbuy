@@ -10,6 +10,9 @@ import smartbuy.buyerprofile.PriorityMode;
 import smartbuy.house.House;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 
 
@@ -37,19 +40,35 @@ public class ScoringService {
         int safety = safetyScore(house);
         int schools = schoolsScore(house);
 
+        List<DimensionScore> dimensions = List.of(
+                new DimensionScore("Price", price),
+                new DimensionScore("Space", space),
+                new DimensionScore("Safety", safety),
+                new DimensionScore("Schools", schools)
+        );
+
         int total = weightedTotal(mode, price, space, safety, schools);
-        return new ScoreResponse(house, total, null);
+
+        // Top-Level Rule: Total Score Cap Penalty： If Space Fit or Crime Safety is 0, cap total at 40.
+        if (space == 0 || safety == 0) {
+            total = Math.min(total, 40);
+        }
+
+        String summary = generateSummary(total, dimensions, mode);
+
+        return new ScoreResponse(house, total, dimensions, summary);
     }
 
     /**
-     * Δ = |AVM_i - max| / max
+     * ratio = (avm - maxPrice) / maxPrice
      *
      * Tiered:
-     * Δ < 5%    -> 100
-     * 5%-10%    -> 90
-     * 10%-15%   -> 80
-     * 15%-20%   -> 70
-     * >= 20%    -> 60
+     * <= 80%    -> 100
+     * 80%-90%   -> 95
+     * 100%-110%   -> 80
+     * 110%-120%   -> 70
+     * 120%-130%   -> 50
+     * > 130%    -> 30
      */
     private int priceFitScore(House house, BuyerProfile profile) {
         if (house.getAvmValue() == null) {
@@ -60,20 +79,23 @@ public class ScoringService {
         }
 
         BigDecimal avmI = BigDecimal.valueOf(house.getAvmValue());
-        BigDecimal baseline = profile.getMaxPrice();
-        if (baseline.compareTo(BigDecimal.ZERO) <= 0) {
+        BigDecimal maxPrice = profile.getMaxPrice();
+        if (maxPrice.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile.maxPrice must be > 0");
         }
 
-        BigDecimal diff = avmI.subtract(baseline).abs();
-        BigDecimal delta = diff.divide(baseline, 6, java.math.RoundingMode.HALF_UP);
+        BigDecimal ratio = avmI.divide(maxPrice, 4, java.math.RoundingMode.HALF_UP);
+        // --- UNDER OR AT BUDGET ---
+        if (ratio.compareTo(new BigDecimal("0.80")) <= 0) return 100; // Well Under Budget
+        if (ratio.compareTo(new BigDecimal("0.90")) <= 0) return 95;  // Under Budget
+        if (ratio.compareTo(new BigDecimal("1.00")) <= 0) return 90;  // At Budget
 
-        // thresholds we can change or discuss if needed
-        if (delta.compareTo(new BigDecimal("0.05")) < 0) return 100;
-        if (delta.compareTo(new BigDecimal("0.10")) < 0) return 90;
-        if (delta.compareTo(new BigDecimal("0.15")) < 0) return 80;
-        if (delta.compareTo(new BigDecimal("0.20")) < 0) return 70;
-        return 60;
+        // --- OVER BUDGET (Calculated by how much it exceeds 1.00) ---
+        if (ratio.compareTo(new BigDecimal("1.05")) <= 0) return 80;  // Slightly Over (5%)
+        if (ratio.compareTo(new BigDecimal("1.10")) <= 0) return 70;  // Over Budget (10%)
+        if (ratio.compareTo(new BigDecimal("1.20")) <= 0) return 50;  // Significantly Over (20%)
+
+        return 30; // Out of Range (> 20%)
     }
 
     private int spaceScore(BuyerProfile profile, House house) {
@@ -115,23 +137,26 @@ public class ScoringService {
     }
 
 
-        // Crime Safety Score (S_crime) - inverse tier mapping ？ need to confirm with Li Yan,
-        // Very Safe:     C < 35   -> 100
-        // Low Risk:      35-50    -> 90
-        // Moderate Risk: 50-65    -> 75
-        // High Risk:     65-80    -> 60
-        // Very Unsafe:   C >= 80  -> 0
+        // Crime Safety Score (S_crime)
+        // Crime index definition: national average = 100.
+        // - 200 means 2x national average risk (deal-breaker -> 0)
+        //
+        // More aggressive mapping (user spec):
+        // - if C <= 80  -> 100
+        // - if 80 < C < 200 -> linear down to 0
+        //      S = clamp( (200 - C) / (200 - 80) * 100, 0, 100 )
+        // - if C >= 200 -> 0
     private int safetyScore(House house) {
         if (house.getCrimeIndex() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "house.crimeIndex is required");
         }
         int c = house.getCrimeIndex();
 
-        if (c < 35) return 100;
-        if (c < 50) return 90;
-        if (c < 65) return 75;
-        if (c < 80) return 60;
-        return 0;
+        if (c >= 200) return 0;
+        if (c <= 80) return 100;
+
+        double score = (200.0 - c) * 100.0 / 120.0; 
+        return clamp((int) Math.round(score), 0, 100);
     }
 
     private int schoolsScore(House house) {
@@ -178,6 +203,30 @@ public class ScoringService {
             case 'D', 'F' -> 50;
             default -> 50;
         };
+    }
+
+    private String generateSummary(int total, List<DimensionScore> dims, PriorityMode mode) {
+
+        List<DimensionScore> sorted = new ArrayList<>(dims);
+        sorted.sort(Comparator.comparingInt(DimensionScore::getScore));
+
+        DimensionScore weakest = sorted.get(0);
+        DimensionScore secondStrongest = sorted.get(2);
+        DimensionScore strongest = sorted.get(3);
+
+        String matchStatus = (total >= 60) ? "a match" : "not a match";
+
+        return String.format(
+                "This house received a SmartScore of %d. Its strongest areas are %s (%d) and %s (%d). " +
+                        "However, the %s score is lower at %d, which may be a concern. " +
+                        "Given your priority '%s', this property is %s for you.",
+                total,
+                strongest.getName(), strongest.getScore(),
+                secondStrongest.getName(), secondStrongest.getScore(),
+                weakest.getName(), weakest.getScore(),
+                mode,
+                matchStatus
+        );
     }
 
     private int weightedTotal(

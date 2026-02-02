@@ -3,7 +3,7 @@ package smartbuy.scoring;
 import lombok.Getter;
 
 @Getter
-public class DimensionScore {
+public class   DimensionScore {
     private String name;
     private int score;
 

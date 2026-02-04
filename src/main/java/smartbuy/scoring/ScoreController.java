@@ -1,6 +1,5 @@
 package smartbuy.scoring;
 
-import lombok.Data;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -48,6 +47,23 @@ public class ScoreController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buyerProfile.priorityMode is required");
         }
         return scoringService.score(req.buyerProfile, req.house);
+    }
+
+    /**
+     * Integration-friendly endpoint:
+     * - buyerProfile is persisted and retrieved by sessionId
+     * - request only needs (sessionId, house)
+     */
+    @PostMapping("/house-by-session")
+    public ScoreResponse scoreHouseBySession(@RequestBody ScoreHouseBySessionRequest req) {
+        if (req == null || req.sessionId == null || req.sessionId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sessionId is required");
+        }
+        if (req.house == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "house is required");
+        }
+        BuyerProfile profile = buyerProfileService.getProfile(req.sessionId.trim());
+        return scoringService.score(profile, req.house);
     }
 
     // batch score together 
@@ -142,6 +158,11 @@ public class ScoreController {
 
     public static class ScoreHouseRequest {
         public BuyerProfile buyerProfile;
+        public House house;
+    }
+
+    public static class ScoreHouseBySessionRequest {
+        public String sessionId;
         public House house;
     }
 

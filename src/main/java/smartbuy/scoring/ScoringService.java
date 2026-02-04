@@ -85,7 +85,7 @@ public class ScoringService {
         }
 
         BigDecimal ratio = avmI.divide(maxPrice, 4, java.math.RoundingMode.HALF_UP);
-        // --- UNDER OR AT BUDGET ---
+    
         if (ratio.compareTo(new BigDecimal("0.80")) <= 0) return 100; // Well Under Budget
         if (ratio.compareTo(new BigDecimal("0.90")) <= 0) return 95;  // Under Budget
         if (ratio.compareTo(new BigDecimal("1.00")) <= 0) return 90;  // At Budget
@@ -95,7 +95,7 @@ public class ScoringService {
         if (ratio.compareTo(new BigDecimal("1.10")) <= 0) return 70;  // Over Budget (10%)
         if (ratio.compareTo(new BigDecimal("1.20")) <= 0) return 50;  // Significantly Over (20%)
 
-        return 30; // Out of Range (> 20%)
+        return 30; 
     }
 
     private int spaceScore(BuyerProfile profile, House house) {
@@ -155,7 +155,7 @@ public class ScoringService {
         if (c >= 200) return 0;
         if (c <= 80) return 100;
 
-        double score = (200.0 - c) * 100.0 / 120.0; 
+        double score = (200.0 - c) * 100.0 / 120.0;
         return clamp((int) Math.round(score), 0, 100);
     }
 

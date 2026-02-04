@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
 
 
 @RestController
-@CrossOrigin(origins = "${app.cors.allowed-origins}")
+@CrossOrigin(originPatterns = "${app.cors.allowed-origins}")
 @RequestMapping("/api/score")
 public class ScoreController {
 

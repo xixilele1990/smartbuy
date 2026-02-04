@@ -7,7 +7,8 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/buyerProfile")
-@CrossOrigin(origins = "${app.cors.allowed-origins}") // Enable CORS for configured frontend origins
+//@CrossOrigin(origins = "${app.cors.allowed-origins}") // Enable CORS for configured frontend origins
+@CrossOrigin(originPatterns = "${app.cors.allowed-origins}")
 public class BuyerProfileController {
 
     @Autowired

@@ -14,7 +14,8 @@ import org.springframework.web.server.ResponseStatusException;
 import smartbuy.attom.AttomClient;
 
 @RestController
-@CrossOrigin(origins = "${app.cors.allowed-origins}")
+//@CrossOrigin(origins = "${app.cors.allowed-origins}")
+@CrossOrigin(originPatterns = "${app.cors.allowed-origins}")
 @RequestMapping("/api/houses")
 public class HouseController {
 

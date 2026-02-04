@@ -37,15 +37,4 @@ public class GlobalExceptionHandler {
         error.put("message", ex.getReason());
         return ResponseEntity.status(ex.getStatusCode()).body(error);
     }
-
-    // 3. catch not expected error
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleGeneralException(Exception ex) {
-        Map<String, String> errorResponse = new HashMap<>();
-        errorResponse.put("error", "Internal Server Error");
-        errorResponse.put("message", "An unexpected error occurred");
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-    }
-
 }

@@ -35,7 +35,6 @@ class BuyerProfileServiceTest {
         testDto.setMinBathrooms(BigDecimal.valueOf(1));
         testDto.setPriorityMode(PriorityMode.BALANCED);
 
- s
         existingProfile = new BuyerProfile();
         existingProfile.setSessionId("test-session-123");
         existingProfile.setMaxPrice(BigDecimal.valueOf(400000.0));
@@ -44,7 +43,6 @@ class BuyerProfileServiceTest {
 
     @Test
     void saveOrUpdateProfile_ShouldCreateNew_WhenProfileDoesNotExist() {
-        // Given
         when(repository.findBySessionId("test-session-123")).thenReturn(Optional.empty());
         when(repository.save(any(BuyerProfile.class))).thenAnswer(i -> i.getArguments()[0]);
 

@@ -217,7 +217,7 @@ public class ScoringService {
         String matchStatus = (total >= 60) ? "a match" : "not a match";
 
         return String.format(
-                "This house received a SmartScore of %d. Its strongest areas are %s (%d) and %s (%d). " +
+                "This house received a SmartScore of %d. Its strongest areas are %s %d and %s %d. " +
                         "However, the %s score is lower at %d, which may be a concern. " +
                         "Given your priority '%s', this property is %s for you.",
                 total,
